@@ -119,18 +119,20 @@ def renderValueFunction(states, m, n):
             print(col, end='\t')
         print('\n')
     print('-----------------------------------')
-    ax = sns.heatmap(valueGrid, fmt='7.0f', cbar=True)
+    ax = sns.heatmap(valueGrid, annot=False, fmt='7.0f', cbar=True)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    plt.gca().invert_yaxis()
+    plt.gca().invert_yaxis()                    #Orient graph so same orientation as Latex graphs
     plt.axis('off')
     plt.show()
 
 
 if __name__ == '__main__':
-    n_games = 500000
-    ALPHA = 1
+    n_games = 40000
+    ALPHA = 0.01
     count = 1
+
+    totalRewards = np.zeros(n_games)
     rDict = {
         3: 600,
         21: -300,
@@ -142,21 +144,22 @@ if __name__ == '__main__':
     environment = Gridworld(8, 8, rDict)
     environment.render()
 
-    totalRewards = np.zeros(n_games)
-
     v = [0 for i in range(len(environment.allStates))]  # Initialise value function to 0
+    valueFunctionInstance = []
 
     for i in range(n_games):
         finished = False
-        ALPHA /= count
         episodeRewards = 0
         currentObservation = environment.reset()
 
+        if count % 10000 == 0:
+            print('Episode ', count)
+        num_steps = 0
         while not finished:
-            obs = currentObservation
-            oldValue = v[currentObservation]
-            sampledAction = environment.sampleRandomAction()
 
+            obs = currentObservation
+            oldValue = v[obs]
+            sampledAction = environment.sampleRandomAction()
             currentObservation, sampledReward, finished, info = environment.step(sampledAction)
             episodeRewards += sampledReward
             v[obs] += ALPHA * (sampledReward + v[currentObservation] - oldValue)
@@ -164,6 +167,17 @@ if __name__ == '__main__':
         totalRewards[i] += episodeRewards
         count += 1
 
+        valueFunctionInstance.append(v[24])
+
+
     plt.plot(totalRewards)
     plt.show()
     renderValueFunction(v, 8, 8)
+
+    plt.plot(valueFunctionInstance)
+    plt.title('TD estimate of state [0,4]')
+    plt.xlabel('Episode')
+    plt.ylabel('v(s)')
+    plt.show()
+
+
