@@ -6,7 +6,7 @@
 ---
 gridworld.py
 ---
-Add Monte Carlo simulation of value function <\br>
+Add Monte Carlo simulation of value function  
 Add TD(0) value function estimation
 
 
