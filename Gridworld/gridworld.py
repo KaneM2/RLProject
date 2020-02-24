@@ -119,24 +119,24 @@ def renderValueFunction(states, m, n):
             print(col, end='\t')
         print('\n')
     print('-----------------------------------')
-    ax=sns.heatmap(valueGrid, annot=True, fmt='7.0f')
+    ax = sns.heatmap(valueGrid, fmt='7.0f', cbar=True)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
     plt.gca().invert_yaxis()
+    plt.axis('off')
     plt.show()
 
 
 if __name__ == '__main__':
-
-    ALPHA = 0.05
-    n_games = 75000
-
+    n_games = 500000
+    ALPHA = 1
+    count = 1
     rDict = {
         3: 600,
         21: -300,
         33: -50,
         49: -300,
-        55: 50
+        55: 100
     }
 
     environment = Gridworld(8, 8, rDict)
@@ -148,7 +148,7 @@ if __name__ == '__main__':
 
     for i in range(n_games):
         finished = False
-
+        ALPHA /= count
         episodeRewards = 0
         currentObservation = environment.reset()
 
@@ -162,6 +162,7 @@ if __name__ == '__main__':
             v[obs] += ALPHA * (sampledReward + v[currentObservation] - oldValue)
 
         totalRewards[i] += episodeRewards
+        count += 1
 
     plt.plot(totalRewards)
     plt.show()
