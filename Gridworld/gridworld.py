@@ -2,6 +2,7 @@ import typing
 import random
 import numpy as np
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 
 class Gridworld:
@@ -68,7 +69,7 @@ class Gridworld:
         if self.isOffGridMove(self.agentPosition, nextState):
             return self.agentPosition, reward, self.isTerminal(self.agentPosition), 'Off grid move'
 
-        elif self.grid[x][y]==self.rewardSquareIndicator:
+        elif self.grid[x][y] == self.rewardSquareIndicator:
             self.resetStateAfterMove(nextState)
             reward += self.rewardDict[nextState]
             return self.agentPosition, reward, self.isTerminal(self.agentPosition), 'State is now reward square'
@@ -109,19 +110,41 @@ class Gridworld:
         return random.choice(list(self.possibleActions))
 
 
+def renderValueFunction(states, m, n):
+    npList = np.asarray(states)
+    valueGrid = np.reshape(npList, (m, n))
+    print('-----------------------------------')
+    for row in valueGrid:
+        for col in row:
+            print(col, end='\t')
+        print('\n')
+    print('-----------------------------------')
+    ax=sns.heatmap(valueGrid, annot=True, fmt='7.0f')
+    ax.set_yticklabels([])
+    ax.set_xticklabels([])
+    plt.gca().invert_yaxis()
+    plt.show()
+
+
 if __name__ == '__main__':
+
+    ALPHA = 0.05
+    n_games = 75000
+
     rDict = {
-        3: 100,
-        2 * 8 + 6 - 1: -10,
-        4 * 8 + 2 - 1: 30,
-        6 * 8 + 2 - 1: -50,
-        63 - 8: 20
+        3: 600,
+        21: -300,
+        33: -50,
+        49: -300,
+        55: 50
     }
 
     environment = Gridworld(8, 8, rDict)
     environment.render()
-    n_games = 1
+
     totalRewards = np.zeros(n_games)
+
+    v = [0 for i in range(len(environment.allStates))]  # Initialise value function to 0
 
     for i in range(n_games):
         finished = False
@@ -130,12 +153,16 @@ if __name__ == '__main__':
         currentObservation = environment.reset()
 
         while not finished:
+            obs = currentObservation
+            oldValue = v[currentObservation]
             sampledAction = environment.sampleRandomAction()
+
             currentObservation, sampledReward, finished, info = environment.step(sampledAction)
             episodeRewards += sampledReward
-            environment.render()
+            v[obs] += ALPHA * (sampledReward + v[currentObservation] - oldValue)
+
         totalRewards[i] += episodeRewards
-        print('Episode over')
 
     plt.plot(totalRewards)
     plt.show()
+    renderValueFunction(v, 8, 8)
