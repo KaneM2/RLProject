@@ -130,3 +130,15 @@ def renderValueFunction(states, m, n):
 
 
 
+def maxAction(Q, state, actions):
+    actionValues = np.array([Q[state, act] for act in actions])
+    a = np.argmax(actionValues)
+    return actions[a]
+
+def renderPolicy(Q, m, n, actions):
+    print('-----------------')
+    for row in range(m):
+        for col in range(n):
+            print(maxAction(Q, row * m + col, actions), end='\t')
+        print('\n')
+    print('-----------------')
