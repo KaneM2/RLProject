@@ -21,6 +21,7 @@ class Gridworld:
         self.actionDict = {'Left': -1, 'Right': 1, 'Up': -self.m, 'Down': self.m}
         self.possibleActions = ['Left', 'Right', 'Up', 'Down']
         self.setRewardSquares(rewardDict)
+        self.Q = {}
 
     def getAgentPosition(self):
         x = self.agentPosition // self.m
@@ -122,62 +123,10 @@ def renderValueFunction(states, m, n):
     ax = sns.heatmap(valueGrid, annot=False, fmt='7.0f', cbar=True)
     ax.set_yticklabels([])
     ax.set_xticklabels([])
-    plt.gca().invert_yaxis()                    #Orient graph so same orientation as Latex graphs
+    plt.gca().invert_yaxis()  # Orient graph so same orientation as Latex graphs
     plt.axis('off')
+    plt.title('TD Value function estimate')
     plt.show()
 
-
-if __name__ == '__main__':
-    n_games = 40000
-    ALPHA = 0.01
-    count = 1
-
-    totalRewards = np.zeros(n_games)
-    rDict = {
-        3: 600,
-        21: -300,
-        33: -50,
-        49: -300,
-        55: 100
-    }
-
-    environment = Gridworld(8, 8, rDict)
-    environment.render()
-
-    v = [0 for i in range(len(environment.allStates))]  # Initialise value function to 0
-    valueFunctionInstance = []
-
-    for i in range(n_games):
-        finished = False
-        episodeRewards = 0
-        currentObservation = environment.reset()
-
-        if count % 10000 == 0:
-            print('Episode ', count)
-        num_steps = 0
-        while not finished:
-
-            obs = currentObservation
-            oldValue = v[obs]
-            sampledAction = environment.sampleRandomAction()
-            currentObservation, sampledReward, finished, info = environment.step(sampledAction)
-            episodeRewards += sampledReward
-            v[obs] += ALPHA * (sampledReward + v[currentObservation] - oldValue)
-
-        totalRewards[i] += episodeRewards
-        count += 1
-
-        valueFunctionInstance.append(v[24])
-
-
-    plt.plot(totalRewards)
-    plt.show()
-    renderValueFunction(v, 8, 8)
-
-    plt.plot(valueFunctionInstance)
-    plt.title('TD estimate of state [0,4]')
-    plt.xlabel('Episode')
-    plt.ylabel('v(s)')
-    plt.show()
 
 
