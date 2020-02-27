@@ -1,24 +1,11 @@
 from Gridworld.gridworld import *
-import numpy as np
 
 
-def maxAction(Q, state, actions):
-    actionValues = np.array([Q[state, act] for act in actions])
-    a = np.argmax(actionValues)
-    return actions[a]
 
-
-def renderPolicy(Q, m, n, actions):
-    print('-----------------')
-    for row in range(m):
-        for col in range(n):
-            print(maxAction(Q, row * m + col, actions), end='\t')
-        print('\n')
-    print('-----------------')
 
 
 if __name__ == '__main__':
-    n_games = 40000
+    n_games = 20000
     ALPHA = 0.01
     count = 1
     epsilon = 0.01
@@ -65,13 +52,15 @@ if __name__ == '__main__':
             epRewards += reward
             obs = observation_
 
-            if epsilon - 2 / n_games > 0:
-                epsilon -= 2 / n_games
+            if epsilon - 1 / n_games > 0:
+                epsilon -= 1 / n_games
             else:
                 epsilon = 0
 
         totalSarsaRewards[i] += epRewards
-
+    plt.plot(totalSarsaRewards)
+    plt.title('SARSA Episode Rewards')
+    plt.show()
     print('Printing learned policy---------------------------')
 
     learnedObs = environment.reset()
@@ -85,5 +74,5 @@ if __name__ == '__main__':
         learnedObs = learnedObs_
 
     print('Printing Episode Rewards--------------------------')
-    print(totalSarsaRewards)
+
     renderPolicy(Q_est,8,8,environment.possibleActions)
