@@ -7,6 +7,7 @@
 Gridworld Folder
 ---
 Comment every file clearly
+
 Remove redundant code
 
 **Game**
