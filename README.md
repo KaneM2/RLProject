@@ -15,7 +15,11 @@ Remove redundant code
 Create Gym environment for a game:
 * Snake
 * Atari game
+* Snake - Maze variant
 
+**Agent**
+---
+* DQNAgent
 
 
 
