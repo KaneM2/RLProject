@@ -4,9 +4,16 @@
 
 **TO DO**:
 ---
-gridworld.py
+Gridworld Folder
 ---
-Add SARSA control algorithm
+Comment every file clearly
+Remove redundant code
+
+**Game**
+---
+Create Gym environment for a game:
+* Snake
+* Atari game
 
 
 
