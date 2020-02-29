@@ -70,4 +70,4 @@ if __name__ == '__main__':
     print('Printing Episode Rewards--------------------------')
     print(totalQRewards)
 
-    renderPolicy(Q_est,8,8,environment.possibleActions)
+    renderPolicy(Q_est, 8, 8, environment.possibleActions)

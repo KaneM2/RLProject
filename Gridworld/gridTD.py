@@ -1,7 +1,7 @@
 from Gridworld.gridworld import *
 if __name__ == '__main__':
-    n_games = 75000
-    ALPHA = 0.01
+    n_games = 10000
+    ALPHA = 0.1
     count = 1
 
     totalRewards = np.zeros(n_games)
@@ -20,11 +20,12 @@ if __name__ == '__main__':
     valueFunctionInstance = []
 
     for i in range(n_games):
+
         finished = False
         episodeRewards = 0
         currentObservation = environment.reset()
 
-        if count % 10000 == 0:
+        if count % 1000 == 0:
             print('Episode ', count)
         num_steps = 0
         while not finished:
