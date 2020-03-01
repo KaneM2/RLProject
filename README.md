@@ -12,10 +12,10 @@ Remove redundant code
 
 **Game**
 ---
-Create Gym environment for a game:
 * Snake
-* Atari game
-* Snake - Maze variant
+* Fix snake eat
+* Add new position to apple when eaten
+* Add functions to Wall class
 
 **Agent**
 ---
