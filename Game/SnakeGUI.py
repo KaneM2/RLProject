@@ -132,13 +132,17 @@ class Wall:
 
 
 def main():
-    
+
     env = Environment(20, 500, 10, 10)
     finished = False
     action = env.snake.direction
     clock = pygame.time.Clock()
+
+
+
+
     while not finished:
-        time.sleep(0.1)
+        time.sleep(0.08)  # Make the game slow down
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -157,9 +161,9 @@ def main():
             pygame.quit()
             quit()
 
-        print(clock.get_fps())
+
         env.render()
-        clock.tick(144)
+
 
 
 main()
