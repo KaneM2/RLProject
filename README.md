@@ -13,8 +13,8 @@ Remove redundant code
 **Game**
 ---
 * Snake
-* Fix snake eat
-* Add new position to apple when eaten
+* Fix lag issue when playing
+* Ensure game speed independent of fps
 * Add functions to Wall class
 
 **Agent**
