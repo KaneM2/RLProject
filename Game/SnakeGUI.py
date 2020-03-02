@@ -2,6 +2,7 @@ import numpy as np
 from collections import deque
 import pygame
 import time
+import random
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -23,7 +24,7 @@ class Snake:
         self.direction = start_direction_idx
         self.length = 1
         self.currentPosition = start_position
-        self.blocks = deque([start_position])
+        self.blocks = deque([start_position.copy()])
         self.blockAtEndofTail = None
 
     def isMovingBackwards(self, action):
@@ -44,12 +45,11 @@ class Snake:
             self.direction = action
 
         self.currentPosition += self.actions[self.direction]
-        self.blocks.append(self.currentPosition)
+        self.blocks.append(self.currentPosition.copy())
         self.blockAtEndofTail = self.blocks.popleft()
 
     def eat(self):
-        self.blocks.append(self.blockAtEndofTail)  # If current position is an apple eat
-        print('Eat---------------------', self.blocks)
+        self.blocks.appendleft(self.blockAtEndofTail)  # If current position is an apple eat
 
     def die(self):
         pass
@@ -57,8 +57,6 @@ class Snake:
     def draw(self, screen, blockDim):
 
         for i, block in enumerate(self.blocks):
-            print('Block', i)
-            print(block[0], block[1])
             pygame.draw.rect(screen, GREEN, (blockDim * block[0], blockDim * block[1], blockDim, blockDim))
 
 
@@ -74,14 +72,14 @@ class Environment:
         self.blockSize = screenSize / rows
 
         self.grid = np.zeros((rows, rows))
-        self.snake = Snake(np.array([startX, startY]), 3)
+        self.snake = Snake(np.array([startX, startY]), 1)
         self.apple = Apple(np.array([3, 4]))
 
     def reset(self):
         pass
 
     def render(self):
-
+        self.gameDisplay.fill(BLACK)
         self.snake.draw(self.gameDisplay, self.blockSize)
         self.apple.draw(self.gameDisplay, self.blockSize)
         pygame.display.update()
@@ -91,7 +89,8 @@ class Environment:
         if self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
                 self.apple.position[1]:
             self.snake.eat()
-            print(True)
+
+            self.apple.reset(random.choice(self.getEmptySquares()))
 
     def isOffGrid(self):
         if self.snake.currentPosition[0] * self.blockSize < 0 or self.snake.currentPosition[0] * (
@@ -105,6 +104,15 @@ class Environment:
         else:
             return False
 
+    def getEmptySquares(self):
+        emptySquares = deque([])
+        for i in range(self.grid.shape[0]):
+            for j in range(self.grid.shape[1]):
+                array = np.array([i, j])
+                if all((array != elem).all() for elem in self.snake.blocks):
+                    emptySquares.append(array)
+        return emptySquares
+
 
 class Apple:
     def __init__(self, position):
@@ -114,14 +122,23 @@ class Apple:
     def draw(self, screen, blockDim):
         pygame.draw.rect(screen, RED, (blockDim * self.position[0], blockDim * self.position[1], blockDim, blockDim))
 
+    def reset(self, newPosition):
+        self.position = newPosition
+
+
+class Wall:
+    def __init__(self):
+        pass
+
 
 def main():
+    
     env = Environment(20, 500, 10, 10)
-    env.render()
     finished = False
-    action = 0
+    action = env.snake.direction
     clock = pygame.time.Clock()
     while not finished:
+        time.sleep(0.1)
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -140,12 +157,9 @@ def main():
             pygame.quit()
             quit()
 
-        env.gameDisplay.fill(BLACK)
+        print(clock.get_fps())
         env.render()
-        clock.tick(5)
-
-    pygame.quit()
-    quit()
+        clock.tick(144)
 
 
 main()
