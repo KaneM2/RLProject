@@ -1,8 +1,7 @@
-import numpy as np
-from collections import deque
-import pygame
-import time
 import random
+from collections import deque
+import numpy as np
+import pygame
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -76,6 +75,7 @@ class Environment:
         self.snake = Snake(np.array([startX, startY]), 1)
         self.apple = Apple(np.array([1, 1]))
 
+
     def reset(self):
         pass
 
@@ -86,6 +86,7 @@ class Environment:
         pygame.display.update()
 
     def step(self, action):
+
         self.snake.move(action)
         if self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
                 self.apple.position[1]:
@@ -111,6 +112,7 @@ class Environment:
         return emptySquares
 
 
+
 class Apple:
     def __init__(self, position):
         self.size = 20
@@ -126,34 +128,3 @@ class Apple:
 class Wall:
     def __init__(self):
         pass
-
-
-def main():
-    env = Environment(5, 500, 2, 2)
-    finished = False
-    action = env.snake.direction
-
-    while not finished:
-        time.sleep(1)  # Make the game slow down
-        for event in pygame.event.get():
-
-            if event.type == pygame.QUIT:
-                finished = True
-            if event.type == pygame.KEYDOWN:
-                if event.key == pygame.K_RIGHT:
-                    action = 1
-                if event.key == pygame.K_LEFT:
-                    action = 0
-                if event.key == pygame.K_UP:
-                    action = 2
-                if event.key == pygame.K_DOWN:
-                    action = 3
-        env.step(action)
-        if env.isOffGrid():
-            pygame.quit()
-            quit()
-
-        env.render()
-
-
-main()
