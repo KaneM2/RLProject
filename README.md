@@ -12,10 +12,9 @@ Remove redundant code
 
 **Game**
 ---
-* Snake
-* Fix lag issue when playing
-* Ensure game speed independent of fps
 * Add functions to Wall class
+* Add reward functionality
+* Add isSelfIntersecting to Snake Class
 
 **Agent**
 ---
