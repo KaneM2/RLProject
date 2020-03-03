@@ -39,6 +39,7 @@ class Snake:
 
     def move(self, action):
         if self.isMovingBackwards(action):
+            # noinspection PyUnusedLocal
             action = self.direction
 
         else:
@@ -71,9 +72,9 @@ class Environment:
 
         self.blockSize = screenSize / rows
 
-        self.grid = np.zeros((rows, rows))
+        self.stateSet = set([tuple([i, j]) for i in range(rows) for j in range(rows)])
         self.snake = Snake(np.array([startX, startY]), 1)
-        self.apple = Apple(np.array([3, 4]))
+        self.apple = Apple(np.array([1, 1]))
 
     def reset(self):
         pass
@@ -105,12 +106,8 @@ class Environment:
             return False
 
     def getEmptySquares(self):
-        emptySquares = deque([])
-        for i in range(self.grid.shape[0]):
-            for j in range(self.grid.shape[1]):
-                array = np.array([i, j])
-                if all((array != elem).all() for elem in self.snake.blocks):
-                    emptySquares.append(array)
+        snakeSquares = set([tuple(item) for item in self.snake.blocks.copy()])
+        emptySquares = list(self.stateSet - snakeSquares)
         return emptySquares
 
 
@@ -132,17 +129,12 @@ class Wall:
 
 
 def main():
-
-    env = Environment(20, 500, 10, 10)
+    env = Environment(5, 500, 2, 2)
     finished = False
     action = env.snake.direction
-    clock = pygame.time.Clock()
-
-
-
 
     while not finished:
-        time.sleep(0.08)  # Make the game slow down
+        time.sleep(1)  # Make the game slow down
         for event in pygame.event.get():
 
             if event.type == pygame.QUIT:
@@ -161,9 +153,7 @@ def main():
             pygame.quit()
             quit()
 
-
         env.render()
-
 
 
 main()
