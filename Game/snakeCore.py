@@ -128,7 +128,7 @@ class Environment:
             return True
         if self.isOffGrid():
             return True
-        if any(((self.snake.currentPosition == elem).all() for elem in self.obstacleLocs)):
+        if tuple(self.snake.currentPosition) in self.obstacleLocs:
             return True
         else:
             return False
