@@ -2,6 +2,7 @@ import random
 from collections import deque
 import numpy as np
 import pygame
+from Game.screenCapture import *
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -10,17 +11,20 @@ GREEN = (0, 255, 0)
 BLUE = (0, 0, 255)
 
 
+def samplegrid(w, h, n):
+    return [divmod(i, h) for i in random.sample(range(w * h), n)]
+
+
 class Snake:
     actions = [np.array([-1, 0]), np.array([1, 0]), np.array([0, -1]), np.array([0, 1])]
 
-    def __init__(self, start_position, start_direction_idx):
+    def __init__(self, start_position):
         """
 
         :type start_position: 2x1 numpy Array
         """
         self.startPosition = None
-        self.alive = True
-        self.direction = start_direction_idx
+        self.direction = None
         self.length = 1
         self.currentPosition = start_position
         self.blocks = deque([start_position.copy()])
@@ -50,9 +54,15 @@ class Snake:
 
     def eat(self):
         self.blocks.appendleft(self.blockAtEndofTail)  # If current position is an apple eat
+        self.length += 1
 
-    def die(self):
-        pass
+    def eatingTail(self):
+        tail = self.blocks.copy()
+        tail.pop()
+        if any(((self.currentPosition == elem).all() for elem in tail)):
+            return True
+        else:
+            return False
 
     def draw(self, screen, blockDim):
 
@@ -61,47 +71,49 @@ class Snake:
 
 
 class Environment:
-    def __init__(self, rows, screenSize, startX, startY):
+    def __init__(self, rows, screenSize, startX, startY, numObstacles):
         self.rows = rows
         self.screenSize = screenSize
-
-        pygame.init()
+        self.numObstacles = numObstacles
+        self.obstacles = []
+        self.obstacleLocs = None
         self.gameDisplay = pygame.display.set_mode((screenSize, screenSize))
         pygame.display.set_caption('Snake')
 
         self.blockSize = screenSize / rows
-
+        self.allStates = [np.array([i, j]) for i in range(rows) for j in range(rows)]
         self.stateSet = set([tuple([i, j]) for i in range(rows) for j in range(rows)])
-        self.snake = Snake(np.array([startX, startY]), 1)
+        self.snake = Snake(np.array([startX, startY]))
         self.apple = Apple(np.array([1, 1]))
-
-
-    def reset(self):
-        pass
 
     def render(self):
         self.gameDisplay.fill(BLACK)
         self.snake.draw(self.gameDisplay, self.blockSize)
         self.apple.draw(self.gameDisplay, self.blockSize)
+        for obstacle in self.obstacles:
+            obstacle.draw(self.gameDisplay, self.blockSize)
+
         pygame.display.update()
 
     def step(self, action):
-
+        reward = 0
         self.snake.move(action)
+        if self.isTerminal():
+            return getDisplay(self.gameDisplay), reward, True, 'Reached terminal state'
         if self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
                 self.apple.position[1]:
             self.snake.eat()
-
             self.apple.reset(random.choice(self.getEmptySquares()))
+            reward += 1
+
+        return getDisplay(self.gameDisplay), reward, False, 'valid step'
 
     def isOffGrid(self):
         if self.snake.currentPosition[0] * self.blockSize < 0 or self.snake.currentPosition[0] * (
                 self.blockSize) > self.screenSize - self.blockSize:
-            print(self.snake.currentPosition[0] * self.screenSize, self.snake.currentPosition[1] * self.screenSize)
             return True
         if self.snake.currentPosition[1] * self.blockSize < 0 or self.snake.currentPosition[1] * (
                 self.blockSize) > self.screenSize - self.blockSize:
-            print(self.snake.currentPosition[0] * self.screenSize, self.snake.currentPosition[1] * self.screenSize)
             return True
         else:
             return False
@@ -111,11 +123,37 @@ class Environment:
         emptySquares = list(self.stateSet - snakeSquares)
         return emptySquares
 
+    def isTerminal(self):
+        if self.snake.eatingTail():
+            return True
+        if self.isOffGrid():
+            return True
+        if any(((self.snake.currentPosition == elem).all() for elem in self.obstacleLocs)):
+            return True
+        else:
+            return False
+
+    def reset(self):
+        self.obstacles = []
+        self.snake.blocks = deque([])
+        self.snake.length = 1
+        self.snake.direction = random.randint(0, 2)
+        newPosList = samplegrid(self.rows, self.rows, 2 + self.numObstacles)
+
+        self.snake.currentPosition = newPosList[0]
+        self.snake.blocks.append(newPosList[0])
+
+        newApplePos = newPosList[1]
+        self.apple.reset(newApplePos)
+        self.obstacleLocs = newPosList[2:]
+        for position in self.obstacleLocs:
+            self.obstacles.append(Wall(position))
+
+        return self.snake.direction
 
 
 class Apple:
     def __init__(self, position):
-        self.size = 20
         self.position = position
 
     def draw(self, screen, blockDim):
@@ -126,5 +164,8 @@ class Apple:
 
 
 class Wall:
-    def __init__(self):
-        pass
+    def __init__(self, position):
+        self.position = position
+
+    def draw(self, screen, blockDim):
+        pygame.draw.rect(screen, BLUE, (blockDim * self.position[0], blockDim * self.position[1], blockDim, blockDim))
