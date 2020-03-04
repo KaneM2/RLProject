@@ -12,9 +12,7 @@ Remove redundant code
 
 **Game**
 ---
-* Add functions to Wall class
-* Add reward functionality
-* Add isSelfIntersecting to Snake Class
+* Fix bug allowing snake to spawn in wall
 
 **Agent**
 ---
