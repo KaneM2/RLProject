@@ -112,12 +112,11 @@ class Environment:
         reward = 0
         self.draw()
         self.snake.move(action)
-
         display = getDisplay(self.gameDisplay)
         state = self.getState(display)
         if self.isTerminal():
             return state, reward, True, 'Reached terminal state'
-        if self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
+        elif self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
                 self.apple.position[1]:
             self.snake.eat()
             self.apple.reset(random.choice(self.getEmptySquares()))
@@ -136,8 +135,10 @@ class Environment:
             return False
 
     def getEmptySquares(self):
-        snakeSquares = set([tuple(item) for item in self.snake.blocks.copy()])
-        emptySquares = list(self.stateSet - snakeSquares)
+
+        snakeSquares = set([tuple(item) for item in self.snake.blocks])
+        wallSnakeSquares=set(self.obstacleLocs)|snakeSquares
+        emptySquares = list(self.stateSet - wallSnakeSquares)
         return emptySquares
 
     def isTerminal(self):
