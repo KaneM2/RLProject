@@ -12,7 +12,6 @@ Remove redundant code
 
 **Game**
 ---
-* Fix bug allowing snake to spawn in wall
 
 **Agent**
 ---
