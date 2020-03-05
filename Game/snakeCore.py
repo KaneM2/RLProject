@@ -70,6 +70,10 @@ class Snake:
             pygame.draw.rect(screen, GREEN, (blockDim * block[0], blockDim * block[1], blockDim, blockDim))
 
 
+def render():
+    pygame.display.update()
+
+
 class Environment:
     def __init__(self, rows, screenSize, startX, startY, numObstacles):
         self.rows = rows
@@ -85,28 +89,41 @@ class Environment:
         self.stateSet = set([tuple([i, j]) for i in range(rows) for j in range(rows)])
         self.snake = Snake(np.array([startX, startY]))
         self.apple = Apple(np.array([1, 1]))
+        self.frames = None
 
-    def render(self):
+    def draw(self):
         self.gameDisplay.fill(BLACK)
         self.snake.draw(self.gameDisplay, self.blockSize)
         self.apple.draw(self.gameDisplay, self.blockSize)
         for obstacle in self.obstacles:
             obstacle.draw(self.gameDisplay, self.blockSize)
 
-        pygame.display.update()
+    def getState(self, currentFrame):
+        if self.frames == None:
+            self.frames = deque([currentFrame] * 2)
+        else:
+            self.frames.append(currentFrame)
+            self.frames.popleft()
+        state = np.asarray(self.frames)
+        reorderedState = np.moveaxis(state, [0, 1, 2, 3], [3, 1, 0, 2])
+        return reorderedState
 
     def step(self, action):
         reward = 0
+        self.draw()
         self.snake.move(action)
+
+        display = getDisplay(self.gameDisplay)
+        state = self.getState(display)
         if self.isTerminal():
-            return getDisplay(self.gameDisplay), reward, True, 'Reached terminal state'
+            return state, reward, True, 'Reached terminal state'
         if self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
                 self.apple.position[1]:
             self.snake.eat()
             self.apple.reset(random.choice(self.getEmptySquares()))
             reward += 1
 
-        return getDisplay(self.gameDisplay), reward, False, 'valid step'
+        return state, reward, False, 'valid step'
 
     def isOffGrid(self):
         if self.snake.currentPosition[0] * self.blockSize < 0 or self.snake.currentPosition[0] * (
