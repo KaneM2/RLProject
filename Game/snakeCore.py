@@ -42,7 +42,6 @@ class Snake:
 
     def move(self, action):
         if self.isMovingBackwards(action):
-            # noinspection PyUnusedLocal
             action = self.direction
 
         else:
@@ -104,15 +103,16 @@ class Environment:
         else:
             self.frames.append(currentFrame)
             self.frames.popleft()
-        state = np.asarray(self.frames)
-        reorderedState = np.moveaxis(state, [0, 1, 2, 3], [3, 1, 0, 2])
-        return reorderedState
+
+        dthreestate=np.concatenate((self.frames[0],self.frames[1]),axis=2)
+        state=dthreestate[np.newaxis,:]
+        return state
 
     def step(self, action):
         reward = 0
         self.draw()
         self.snake.move(action)
-        display = getDisplay(self.gameDisplay)
+        display = getDisplay(self.gameDisplay, self.screenSize, self.rows)
         state = self.getState(display)
         if self.isTerminal():
             return state, reward, True, 'Reached terminal state'
@@ -121,7 +121,6 @@ class Environment:
             self.snake.eat()
             self.apple.reset(random.choice(self.getEmptySquares()))
             reward += 1
-
         return state, reward, False, 'valid step'
 
     def isOffGrid(self):
@@ -137,7 +136,7 @@ class Environment:
     def getEmptySquares(self):
 
         snakeSquares = set([tuple(item) for item in self.snake.blocks])
-        wallSnakeSquares=set(self.obstacleLocs)|snakeSquares
+        wallSnakeSquares = set(self.obstacleLocs) | snakeSquares
         emptySquares = list(self.stateSet - wallSnakeSquares)
         return emptySquares
 
@@ -166,8 +165,10 @@ class Environment:
         self.obstacleLocs = newPosList[2:]
         for position in self.obstacleLocs:
             self.obstacles.append(Wall(position))
-
-        return self.snake.direction
+        self.draw()
+        display = getDisplay(self.gameDisplay, self.screenSize, self.rows)
+        state = self.getState(display)
+        return self.snake.direction,state
 
 
 class Apple:
