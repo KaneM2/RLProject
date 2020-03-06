@@ -2,22 +2,17 @@ from Game.snakeCore import *
 import time
 
 if __name__ == '__main__':
-    env = Environment(20, 500, 10, 10,10)
+    env = Environment(20, 500, 10, 10, 10)
     finished = False
     offGridStarts = 0
-
     for i in range(1000):
-        action = env.reset()
+        action,s = env.reset()
         totalReward = 0
-        if env.isOffGrid():
-            action = env.reset()
-
-        if env.isOffGrid():
-            print(env.snake.blocks)
-            offGridStarts += 1
         finished = False
-        time.sleep(1)
+        step = 0
+
         while not finished:
+
             time.sleep(0.08)
             for event in pygame.event.get():
 
@@ -34,10 +29,12 @@ if __name__ == '__main__':
                         action = 3
 
             state, stepReward, finished, info = env.step(action)
-            env.render()
-
+            render()
             totalReward += stepReward
+            step += 1
+
         if i % 100 == 0:
             print('Game', i)
+
     print('Fraction of off grid starts', offGridStarts / 10000)
     pygame.quit()
