@@ -1,17 +1,20 @@
 import os
-from keras.layers import Dense, Dropout, Conv2D, MaxPooling2D, Activation, Flatten
+
+import matplotlib.pyplot as plt
+import tensorflow as tf
+from keras.layers import Dense, Conv2D, MaxPooling2D, Activation, Flatten
 from keras.models import Sequential
 from keras.optimizers import Adam
-from Game.snakeCore import *
-import matplotlib.pyplot as plt
 from tensorflow.python.client import device_lib
-import tensorflow as tf
+
+from Game.snakeCore import *
 
 tf.debugging.set_log_device_placement(True)
+print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
 
 MODEL_NAME = "DQN Model"
-DISCOUNT = 1
-TARGET_LAG = 5
+DISCOUNT = 0.99
+TARGET_LAG = 2000
 MIN_MEM_SIZE = 1000
 MIN_EPSILON = 0.01
 
@@ -32,18 +35,14 @@ class DQNetwork:
 
     def create_model(self):
         model = Sequential()
-        model.add(Conv2D(16, (3, 3), strides=1, input_shape=(20, 20, 8)))
+        model.add(Conv2D(32, (3, 3), strides=1, input_shape=self.input_shape,data_format='channels_first'))
         model.add(Activation('relu'))
         model.add(MaxPooling2D((2, 2)))
-
-        model.add(Conv2D(32, (5, 5)))
+        model.add(Conv2D(32, (3, 3)))
         model.add(Activation('relu'))
-        model.add(MaxPooling2D((2, 2), strides=1))
-
         model.add(Flatten())
-        model.add(Dense(128))
-        model.add(Dense(64))
-        model.add(Dense(self.num_actions, activation='linear'))
+        model.add(Dense(256))
+        model.add(Dense(self.num_actions, activation='relu'))
         model.compile(loss='mse', optimizer=Adam(self.learning_rate))
         return model
 
@@ -92,17 +91,16 @@ class Agent:
         X = np.vstack(X)
         Y = np.vstack(Y)
 
-        self.DQN.model.fit(X, Y, batch_size=batch_size, verbose=False)
-
-        if terminal_state:
-            self.target_counter += 1
+        self.DQN.model.fit(X, Y, batch_size=batch_size, verbose=True)
+        print(current_qs)
+        self.target_counter+=1
 
         if self.target_counter > TARGET_LAG:
             self.DQN.target_model.set_weights((self.DQN.model.get_weights()))
             self.target_counter = 0
 
 
-def main():
+if __name__ == '__main__':
     print(device_lib.list_local_devices())
     if not os.path.isdir('models'):
         os.makedirs('models')
@@ -110,9 +108,10 @@ def main():
     epsilon = 1
     step = 1
     env = Environment(20, 500, 10, 10, 10)
-    agent = Agent(50000, (20, 20, 8), 4, 0.01)
+    agent = Agent(500000, (2, 20, 20), 4, 0.01)
     epRewards = []
     count = 0
+
     for _ in range(n_games):
         finished = False
         epReward = 0
@@ -131,21 +130,27 @@ def main():
             epReward += reward
 
             agent.updateMemory((currentState, action, reward, new_state, finished))
-            agent.train(finished, step, 32)
+            agent.train(finished, step, 256)
             currentState = new_state
             step += 1
-            render()
-        if count % 100 == 0:
+            # render()
+
+        if count % 1000 == 0:
             print('Episode ', count)
             print('Epsilon', epsilon)
             print('Last Reward', epReward)
+            model_json = agent.DQN.model.to_json()
+            with open("model.json", "w") as json_file:
+                json_file.write(model_json)
+            # serialize weights to HDF5
+            agent.DQN.model.save_weights("model.h5")
+            print("Saved model to disk")
+            print('epsilon', epsilon)
 
         epRewards.append(epReward)
-        if epsilon > MIN_EPSILON:
-            epsilon *= 0.9997
-            epsilon = max(MIN_EPSILON, epsilon)
+        if epsilon > 0.05:
+            epsilon *= 0.999
+        else:
+            epsilon = 0.05
     plt.plot(epRewards)
     plt.show()
-
-
-main()
