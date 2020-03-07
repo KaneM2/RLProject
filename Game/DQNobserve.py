@@ -1,5 +1,9 @@
-from Game.DQN import *
 import time
+
+from keras.models import model_from_json
+
+from Game.DQN import *
+
 
 def main():
     print('abc')
@@ -14,14 +18,14 @@ def main():
 
     # evaluate loaded model on test data
     loaded_model.compile(loss='mse', optimizer=Adam(0.01))
-    env = Environment(20, 500, 10, 10, 10)
-    agent = Agent(50000, (2,20,20), 4, 0.01)
-    agent.DQN.model=loaded_model
-    step=0
-    epReward=0
+    env = Environment(20, 500, 10, 10, 0)
+    agent = Agent(50000, (4, 20, 20), 4, 0.01)
+    agent.DQN.model = loaded_model
+    step = 0
+    epReward = 0
 
     for i in range(100):
-        finished=False
+        finished = False
         action, currentState = env.reset()
         while not finished:
             time.sleep(0.2)
@@ -38,5 +42,6 @@ def main():
             step += 1
             render()
             print('End')
+
 
 main()
