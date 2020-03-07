@@ -13,7 +13,7 @@ def getDisplay(display,screenSize,rows):
 
     grayArray = np.array(gray)
     gridArray = grayArray[::step, ::step]
-    
+
 
 
     return gridArray

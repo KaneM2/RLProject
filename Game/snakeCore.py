@@ -116,12 +116,13 @@ class Environment:
         display = getDisplay(self.gameDisplay, self.screenSize, self.rows)
         state = self.getState(display)
         if self.isTerminal():
+            reward-=1
             return state, reward, True, 'Reached terminal state'
         elif self.snake.currentPosition[0] == self.apple.position[0] and self.snake.currentPosition[1] == \
                 self.apple.position[1]:
             self.snake.eat()
             self.apple.reset(random.choice(self.getEmptySquares()))
-            reward += 1
+            reward += 9
         return state, reward, False, 'valid step'
 
     def isOffGrid(self):
