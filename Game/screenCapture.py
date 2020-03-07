@@ -1,20 +1,19 @@
 import pygame
-from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
+
+def rgb2gray(rgb):
+    return np.dot(rgb[...,:3], [1, 0.66, 0.33])
 
 
-def getDisplay(display):
+def getDisplay(display,screenSize,rows):
+    step=int(screenSize/rows)
     img = pygame.surfarray.array3d(display)
+    gray=rgb2gray(img)
 
-    imgArray = np.array(img)
-    gridArray = imgArray[::25, ::25, :]
+    grayArray = np.array(gray)
+    gridArray = grayArray[::step, ::step]
+    
 
-    red = (gridArray[:, :, 0] == 255) & (gridArray[:, :, 1] == 0) & (gridArray[:, :, 2] == 0)
-    green = (gridArray[:, :, 0] == 0) & (gridArray[:, :, 1] == 255) & (gridArray[:, :, 2] == 0)
-    blue = (gridArray[:, :, 0] == 0) & (gridArray[:, :, 1] == 0) & (gridArray[:, :, 2] == 255)
-    black = (gridArray[:, :, 0] == 0) & (gridArray[:, :, 1] == 0) & (gridArray[:, :, 2] == 0)
 
-    stack = np.stack((1 * red, 1 * green, 1 * blue, 1 * black))
-    orderedStack = np.moveaxis(stack, 0, -1)
-
-    return orderedStack
+    return gridArray
