@@ -7,6 +7,7 @@ from keras.layers import Dense, Conv2D, MaxPooling2D, Activation, Flatten
 from keras.models import Sequential
 from keras.optimizers import Adam
 from tensorflow.python.client import device_lib
+from keras.models import model_from_json
 
 from Game.snakeCore import *
 
@@ -20,7 +21,7 @@ tensorboard_callback = TensorBoard(log_dir=log_dir, histogram_freq=0)
 MODEL_NAME = "DQN Model"
 DISCOUNT = 0.99
 TARGET_LAG = 2000
-MIN_MEM_SIZE = 1000
+MIN_MEM_SIZE = 10000
 MIN_EPSILON = 0.01
 
 
@@ -115,6 +116,13 @@ if __name__ == '__main__':
     agent = Agent(500000, (4, 20, 20), 4, 0.0001)
     epRewards = []
     count = 0
+    json_file = open('model.json', 'r')
+    loaded_model_json = json_file.read()
+    json_file.close()
+    agent.DQN.model = model_from_json(loaded_model_json)
+    agent.DQN.model.load_weights("model.h5")
+    agent.DQN.target_model = model_from_json(loaded_model_json)
+    agent.DQN.target_model.load_weights("model.h5")
 
     for i in range(n_games):
         finished = False
@@ -134,18 +142,20 @@ if __name__ == '__main__':
             epReward += reward
 
             agent.updateMemory((currentState, action, reward, new_state, finished))
-            agent.train(finished, step, 32)
+            agent.train(finished, step, 256)
             currentState = new_state
             step += 1
             # render()
-
+        epRewards.append(epReward)
         avg_rewards = sum(epRewards[max(0, i - 100):(i + 1)]) / (len(epRewards[max(0, i - 100):(i + 1)]) + 1)
-        with summary_writer.as_default():
-            tf.summary.scalar('Episode reward', epReward, step=i)
-            tf.summary.scalar('Average reward', avg_rewards, step=i)
-            tf.summary.scalar('Epsilon', epsilon, step=i)
 
-        if count % 500 == 0:
+        if count % 50 == 0:
+            with summary_writer.as_default():
+                tf.summary.scalar('Episode reward', epReward, step=i)
+                tf.summary.scalar('Average reward', avg_rewards, step=i)
+                tf.summary.scalar('Epsilon', epsilon, step=i)
+
+        if count % 1000 == 0:
             print('Episode ', count)
             print('Epsilon', epsilon)
             print('Last Reward', epReward)
@@ -156,8 +166,6 @@ if __name__ == '__main__':
             agent.DQN.model.save_weights("model.h5")
             print("Saved model to disk")
             print('epsilon', epsilon)
-
-        epRewards.append(epReward)
         if epsilon > 0.05:
             epsilon *= 0.9997
         else:
