@@ -99,13 +99,14 @@ class Environment:
 
     def getState(self, currentFrame):
         if self.frames == None:
-            self.frames = deque([currentFrame] * 2)
+            self.frames = deque([currentFrame] * 4)
         else:
             self.frames.append(currentFrame)
             self.frames.popleft()
 
-        dthreestate=np.concatenate((self.frames[0],self.frames[1]),axis=2)
+        dthreestate=np.stack((self.frames[0],self.frames[1],self.frames[2],self.frames[3]))
         state=dthreestate[np.newaxis,:]
+
         return state
 
     def step(self, action):
@@ -127,7 +128,7 @@ class Environment:
         if self.snake.currentPosition[0] * self.blockSize < 0 or self.snake.currentPosition[0] * (
                 self.blockSize) > self.screenSize - self.blockSize:
             return True
-        if self.snake.currentPosition[1] * self.blockSize < 0 or self.snake.currentPosition[1] * (
+        elif self.snake.currentPosition[1] * self.blockSize < 0 or self.snake.currentPosition[1] * (
                 self.blockSize) > self.screenSize - self.blockSize:
             return True
         else:
@@ -143,14 +144,15 @@ class Environment:
     def isTerminal(self):
         if self.snake.eatingTail():
             return True
-        if self.isOffGrid():
+        elif self.isOffGrid():
             return True
-        if tuple(self.snake.currentPosition) in self.obstacleLocs:
+        elif tuple(self.snake.currentPosition) in self.obstacleLocs:
             return True
         else:
             return False
 
     def reset(self):
+        self.frames=None
         self.obstacles = []
         self.snake.blocks = deque([])
         self.snake.length = 1
