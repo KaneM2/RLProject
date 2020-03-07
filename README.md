@@ -12,12 +12,11 @@ Remove redundant code
 
 **Game**
 ---
+* Try getting state directly instead of first drawing to screen
 
 **Agent**
 ---
-* Try out different epsilon decays
-* Instead of One-Hot encoding channels try convert to grayscale 
-* Gray= 1xRed +0.66*Green +0.33*Blue
+
 
 
 
