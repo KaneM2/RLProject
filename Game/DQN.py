@@ -9,7 +9,7 @@ from keras.optimizers import Adam
 from tensorflow.python.client import device_lib
 from keras.models import model_from_json
 
-from Game.snakeCore import *
+from Game.GridSnake import *
 
 tf.debugging.set_log_device_placement(True)
 print("Num GPUs Available: ", len(tf.config.experimental.list_physical_devices('GPU')))
@@ -65,9 +65,9 @@ class Agent:
         self.memory.append(new_transition)
 
     def getQ(self, state, step):
-        return self.DQN.model.predict(state)
+        return self.DQN.model.predict(state, steps=1)
 
-    def train(self, terminal_state, step, batch_size):
+    def train(self, terminal_state, batch_size):
         if len(self.memory) < MIN_MEM_SIZE:
             return
 
@@ -109,20 +109,13 @@ if __name__ == '__main__':
     print(device_lib.list_local_devices())
     if not os.path.isdir('models'):
         os.makedirs('models')
-    n_games = 50000
+    n_games = 300
     epsilon = 1
     step = 1
-    env = Environment(20, 500, 10, 10, 0)
+    env = Environment(20, 500, 10, 10, 3)
     agent = Agent(500000, (4, 20, 20), 4, 0.0001)
     epRewards = []
     count = 0
-    json_file = open('model.json', 'r')
-    loaded_model_json = json_file.read()
-    json_file.close()
-    agent.DQN.model = model_from_json(loaded_model_json)
-    agent.DQN.model.load_weights("model.h5")
-    agent.DQN.target_model = model_from_json(loaded_model_json)
-    agent.DQN.target_model.load_weights("model.h5")
 
     for i in range(n_games):
         finished = False
@@ -142,7 +135,7 @@ if __name__ == '__main__':
             epReward += reward
 
             agent.updateMemory((currentState, action, reward, new_state, finished))
-            agent.train(finished, step, 256)
+            agent.train(finished, 256)
             currentState = new_state
             step += 1
             # render()
