@@ -65,22 +65,25 @@ class Agent:
         self.memory.append(new_transition)
 
     def getQ(self, state, step):
-        return self.DQN.model.predict(state, steps=1)
+        return self.DQN.model.predict_on_batch(state)
 
     def train(self, terminal_state, batch_size):
         if len(self.memory) < MIN_MEM_SIZE:
             return
 
         minibatch = random.sample(self.memory, batch_size)
+        current_states=np.zeros((batch_size,4,20,20))
+        for i,transition in enumerate(minibatch):
+            current_states[i]=transition[0]
 
-        current_states = np.concatenate([transition[0] for transition in minibatch])
-        current_qs_list = self.DQN.model.predict(current_states, batch_size)
+        current_qs_list = self.DQN.model.predict_on_batch(current_states)
+        new_current_states = np.zeros((batch_size, 4, 20, 20))
+        for i, transition in enumerate(minibatch):
+            new_current_states[i] = transition[3]
+        future_qs_list = self.DQN.target_model.predict_on_batch(new_current_states)
 
-        new_current_states = np.concatenate([transition[3] for transition in minibatch])
-        future_qs_list = self.DQN.target_model.predict(new_current_states, batch_size)
-
-        X = []
-        Y = []
+        Xs = []
+        Qs = []
 
         for index, (current_state, action, reward, new_current_state, done) in enumerate(minibatch):
             if not done:
@@ -91,13 +94,15 @@ class Agent:
 
             current_qs = current_qs_list[index]
             current_qs[action] = new_q
-            X.append(current_state)
-            Y.append(current_qs)
+            Xs.append(current_state)
+            Qs.append(current_qs)
+        x=np.zeros(((batch_size,)+self.input_shape))
+        y=np.zeros((batch_size,self.num_actions))
+        for i,state in enumerate(Xs):
+            x[i]=Xs[i]
+            y[i]=Qs[i]
 
-        X = np.vstack(X)
-        Y = np.vstack(Y)
-
-        self.DQN.model.fit(X, Y, verbose=False)
+        self.DQN.model.train_on_batch(x, y)
         self.target_counter += 1
 
         if self.target_counter > TARGET_LAG:
@@ -109,10 +114,10 @@ if __name__ == '__main__':
     print(device_lib.list_local_devices())
     if not os.path.isdir('models'):
         os.makedirs('models')
-    n_games = 300
+    n_games = 2000
     epsilon = 1
     step = 1
-    env = Environment(20, 500, 10, 10, 3)
+    env = Environment(20, 500, 10, 10, 0)
     agent = Agent(500000, (4, 20, 20), 4, 0.0001)
     epRewards = []
     count = 0
@@ -127,6 +132,7 @@ if __name__ == '__main__':
             if np.random.random() > epsilon:
                 action = np.argmax(agent.getQ(currentState, step))
 
+
             else:
                 action = np.random.randint(0, agent.num_actions)
 
@@ -135,18 +141,17 @@ if __name__ == '__main__':
             epReward += reward
 
             agent.updateMemory((currentState, action, reward, new_state, finished))
-            agent.train(finished, 256)
+            agent.train(finished, 32)
             currentState = new_state
             step += 1
             # render()
         epRewards.append(epReward)
         avg_rewards = sum(epRewards[max(0, i - 100):(i + 1)]) / (len(epRewards[max(0, i - 100):(i + 1)]) + 1)
 
-        if count % 50 == 0:
-            with summary_writer.as_default():
-                tf.summary.scalar('Episode reward', epReward, step=i)
-                tf.summary.scalar('Average reward', avg_rewards, step=i)
-                tf.summary.scalar('Epsilon', epsilon, step=i)
+        with summary_writer.as_default():
+             tf.summary.scalar('Episode reward', epReward, step=i)
+             tf.summary.scalar('Average reward', avg_rewards, step=i)
+             tf.summary.scalar('Epsilon', epsilon, step=i)
 
         if count % 1000 == 0:
             print('Episode ', count)
