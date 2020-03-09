@@ -1,4 +1,4 @@
-from Game.snakeCore import *
+from Game.GridSnake import *
 import time
 
 if __name__ == '__main__':
@@ -27,8 +27,9 @@ if __name__ == '__main__':
                         action = 2
                     if event.key == pygame.K_DOWN:
                         action = 3
-
+            env.draw()
             state, stepReward, finished, info = env.step(action)
+
             render()
             totalReward += stepReward
             step += 1
