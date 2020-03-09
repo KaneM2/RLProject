@@ -31,7 +31,7 @@ def main():
             time.sleep(0.2)
 
             action = np.argmax(agent.getQ(currentState, step))
-
+            #env.draw()
             new_state, reward, finished, info = env.step(action)
 
             epReward += reward
