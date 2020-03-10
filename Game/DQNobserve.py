@@ -1,7 +1,4 @@
 import time
-
-from keras.models import model_from_json
-
 from Game.DQN import *
 
 
@@ -28,20 +25,29 @@ def main():
         finished = False
         action, currentState = env.reset()
         while not finished:
-            time.sleep(0.2)
-
+            time.sleep(0.08)
             action = np.argmax(agent.getQ(currentState, step))
-            #env.draw()
+            for event in pygame.event.get():
+
+                if event.type == pygame.QUIT:
+                    finished = True
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_RIGHT:
+                        action = 1
+                    if event.key == pygame.K_LEFT:
+                        action = 0
+                    if event.key == pygame.K_UP:
+                        action = 2
+                    if event.key == pygame.K_DOWN:
+                        action = 3
+
+
+            env.draw()
             new_state, reward, finished, info = env.step(action)
-
             epReward += reward
-
-            agent.updateMemory((currentState, action, reward, new_state, finished))
-            agent.train(finished, step, 32)
             currentState = new_state
             step += 1
             render()
-            print('End')
 
 
 main()
