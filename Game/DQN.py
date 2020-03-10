@@ -43,7 +43,6 @@ class DQNetwork:
         model = Sequential()
         model.add(Conv2D(32, (3, 3), strides=1, input_shape=self.input_shape, data_format='channels_first'))
         model.add(Activation('relu'))
-        model.add(MaxPooling2D((2, 2), data_format='channels_first'))
         model.add(Conv2D(32, (3, 3), data_format='channels_first'))
         model.add(Activation('relu'))
         model.add(Flatten(data_format='channels_first'))
@@ -72,9 +71,9 @@ class Agent:
             return
 
         minibatch = random.sample(self.memory, batch_size)
-        current_states=np.zeros((batch_size,4,20,20))
-        for i,transition in enumerate(minibatch):
-            current_states[i]=transition[0]
+        current_states = np.zeros((batch_size, 4, 20, 20))
+        for i, transition in enumerate(minibatch):
+            current_states[i] = transition[0]
 
         current_qs_list = self.DQN.model.predict_on_batch(current_states)
         new_current_states = np.zeros((batch_size, 4, 20, 20))
@@ -96,11 +95,11 @@ class Agent:
             current_qs[action] = new_q
             Xs.append(current_state)
             Qs.append(current_qs)
-        x=np.zeros(((batch_size,)+self.input_shape))
-        y=np.zeros((batch_size,self.num_actions))
-        for i,state in enumerate(Xs):
-            x[i]=Xs[i]
-            y[i]=Qs[i]
+        x = np.zeros(((batch_size,) + self.input_shape))
+        y = np.zeros((batch_size, self.num_actions))
+        for i, state in enumerate(Xs):
+            x[i] = Xs[i]
+            y[i] = Qs[i]
 
         self.DQN.model.train_on_batch(x, y)
         self.target_counter += 1
@@ -114,7 +113,7 @@ if __name__ == '__main__':
     print(device_lib.list_local_devices())
     if not os.path.isdir('models'):
         os.makedirs('models')
-    n_games = 2000
+    n_games = 70000
     epsilon = 1
     step = 1
     env = Environment(20, 500, 10, 10, 0)
@@ -149,9 +148,9 @@ if __name__ == '__main__':
         avg_rewards = sum(epRewards[max(0, i - 100):(i + 1)]) / (len(epRewards[max(0, i - 100):(i + 1)]) + 1)
 
         with summary_writer.as_default():
-             tf.summary.scalar('Episode reward', epReward, step=i)
-             tf.summary.scalar('Average reward', avg_rewards, step=i)
-             tf.summary.scalar('Epsilon', epsilon, step=i)
+            tf.summary.scalar('Episode reward', epReward, step=i)
+            tf.summary.scalar('Average reward', avg_rewards, step=i)
+            tf.summary.scalar('Epsilon', epsilon, step=i)
 
         if count % 1000 == 0:
             print('Episode ', count)
@@ -164,7 +163,7 @@ if __name__ == '__main__':
             agent.DQN.model.save_weights("model.h5")
             print("Saved model to disk")
             print('epsilon', epsilon)
-        if epsilon > 0.05:
+        if epsilon > 0.01:
             epsilon *= 0.9997
         else:
-            epsilon = 0.05
+            epsilon = 0.01
