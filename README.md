@@ -12,7 +12,7 @@ Remove redundant code
 
 **Game**
 ---
-* Try getting state directly instead of first drawing to screen
+* Terminate games after a certain number of timesteps
 
 **Agent**
 ---
