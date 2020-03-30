@@ -1,5 +1,10 @@
 from Gridworld.gridworld import *
 
+
+#This script contains an implementation of the Q-Learning algorithm on the GridWorld environment
+
+# This algorithm is slightly modified to the version in the project
+# The main difference is in how the state is chosen at each step
 if __name__ == '__main__':
     n_games = 20000
     ALPHA = 0.01
@@ -7,7 +12,7 @@ if __name__ == '__main__':
     epsilon = 0.01
 
     totalRewards = np.zeros(n_games)
-    rDict = {
+    rDict = {                           #Dictionary containing the Reward squares for the gridworld
         3: 600,
         21: -300,
         33: -50,
@@ -24,7 +29,7 @@ if __name__ == '__main__':
             Q_est[state, action] = 0
 
     totalQRewards = np.zeros(n_games)
-
+    AvgEpRewards=[]
     for i in range(n_games):
         if i % 5000 == 0:
             print('Starting Game ', i)
@@ -53,8 +58,13 @@ if __name__ == '__main__':
                 epsilon = 0
 
         totalQRewards[i] += epRewards
+        avg_rewards = sum(totalQRewards[max(0, i - 100):(i + 1)]) / (len(totalQRewards[max(0, i - 100):(i + 1)]) + 1)
+        AvgEpRewards.append(avg_rewards)
+
     plt.plot(totalQRewards)
     plt.title('Q Episode Rewards')
+    plt.show()
+    plt.plot(AvgEpRewards)
     plt.show()
     print('Printing learned policy---------------------------')
 

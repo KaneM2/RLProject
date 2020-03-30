@@ -2,7 +2,7 @@ from Game.GridSnake import *
 import time
 
 if __name__ == '__main__':
-    env = Environment(20, 500, 10, 10, 10)
+    env = Environment(20, 500, 10, 10, 0)
     finished = False
     offGridStarts = 0
     for i in range(1000):
@@ -13,7 +13,7 @@ if __name__ == '__main__':
 
         while not finished:
 
-            time.sleep(0.08)
+            time.sleep(0.1)
             for event in pygame.event.get():
 
                 if event.type == pygame.QUIT:

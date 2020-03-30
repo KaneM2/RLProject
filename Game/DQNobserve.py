@@ -1,6 +1,6 @@
 import time
 from Game.DQN import *
-
+from keras.models import model_from_json
 
 def main():
     print('abc')
@@ -26,7 +26,7 @@ def main():
         action, currentState = env.reset()
         while not finished:
             time.sleep(0.08)
-            action = np.argmax(agent.getQ(currentState, step))
+            action = np.argmax(agent.getQ(currentState))
             for event in pygame.event.get():
 
                 if event.type == pygame.QUIT:

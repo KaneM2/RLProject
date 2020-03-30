@@ -1,6 +1,5 @@
 import pygame
 import numpy as np
-import matplotlib.pyplot as plt
 
 def rgb2gray(rgb):
     return np.dot(rgb[...,:3], [1, 0.66, 0.33])

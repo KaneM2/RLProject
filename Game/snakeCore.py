@@ -3,6 +3,7 @@ from collections import deque
 import numpy as np
 import pygame
 from Game.screenCapture import *
+import matplotlib.pyplot as plt
 
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
@@ -103,7 +104,6 @@ class Environment:
         else:
             self.frames.append(currentFrame)
             self.frames.popleft()
-
         dthreestate=np.stack((self.frames[0],self.frames[1],self.frames[2],self.frames[3]))
         state=dthreestate[np.newaxis,:]
 
@@ -168,6 +168,7 @@ class Environment:
         self.obstacleLocs = newPosList[2:]
         for position in self.obstacleLocs:
             self.obstacles.append(Wall(position))
+
         self.draw()
         display = getDisplay(self.gameDisplay, self.screenSize, self.rows)
         state = self.getState(display)

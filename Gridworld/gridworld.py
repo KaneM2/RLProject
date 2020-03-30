@@ -5,6 +5,8 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 
+# The script contains the program for the Gridworld environment
+
 class Gridworld:
     allStates: typing.List[int]
 

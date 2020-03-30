@@ -1,11 +1,18 @@
 from Gridworld.gridworld import *
+
+#This script contains an implementation of the TD algorithm on the GridWorld environment
+
+# This algorithm is slightly modified to the version in the project
+# The main difference is in how the state is chosen at each step
+
+
 if __name__ == '__main__':
     n_games = 10000
     ALPHA = 0.1
     count = 1
 
     totalRewards = np.zeros(n_games)
-    rDict = {
+    rDict = {                   #Dictionary containing the Reward squares for the gridworld
         3: 600,
         21: -300,
         33: -50,

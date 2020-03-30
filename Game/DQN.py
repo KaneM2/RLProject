@@ -1,14 +1,11 @@
 import datetime
 import os
-
 import tensorflow as tf
 from keras.callbacks import TensorBoard
-from keras.layers import Dense, Conv2D, MaxPooling2D, Activation, Flatten
+from keras.layers import Dense, Conv2D, Activation, Flatten
 from keras.models import Sequential
 from keras.optimizers import Adam
 from tensorflow.python.client import device_lib
-from keras.models import model_from_json
-
 from Game.GridSnake import *
 
 tf.debugging.set_log_device_placement(True)
@@ -63,28 +60,28 @@ class Agent:
     def updateMemory(self, new_transition):
         self.memory.append(new_transition)
 
-    def getQ(self, state, step):
+    def getQ(self, state):
         return self.DQN.model.predict_on_batch(state)
 
-    def train(self, terminal_state, batch_size):
+    def train(self, batch_size):
         if len(self.memory) < MIN_MEM_SIZE:
             return
 
         minibatch = random.sample(self.memory, batch_size)
         current_states = np.zeros((batch_size, 4, 20, 20))
-        for i, transition in enumerate(minibatch):
-            current_states[i] = transition[0]
+        for j, transition in enumerate(minibatch):
+            current_states[j] = transition[0]
 
         current_qs_list = self.DQN.model.predict_on_batch(current_states)
         new_current_states = np.zeros((batch_size, 4, 20, 20))
-        for i, transition in enumerate(minibatch):
-            new_current_states[i] = transition[3]
+        for j, transition in enumerate(minibatch):
+            new_current_states[j] = transition[3]
         future_qs_list = self.DQN.target_model.predict_on_batch(new_current_states)
 
         Xs = []
         Qs = []
 
-        for index, (current_state, action, reward, new_current_state, done) in enumerate(minibatch):
+        for index, (current_state, act, reward, new_current_state, done) in enumerate(minibatch):
             if not done:
                 max_future_q = np.max(future_qs_list[index])
                 new_q = reward + DISCOUNT * max_future_q
@@ -92,14 +89,14 @@ class Agent:
                 new_q = reward
 
             current_qs = current_qs_list[index]
-            current_qs[action] = new_q
+            current_qs[act] = new_q
             Xs.append(current_state)
             Qs.append(current_qs)
         x = np.zeros(((batch_size,) + self.input_shape))
         y = np.zeros((batch_size, self.num_actions))
-        for i, state in enumerate(Xs):
-            x[i] = Xs[i]
-            y[i] = Qs[i]
+        for j, state in enumerate(Xs):
+            x[j] = Xs[j]
+            y[j] = Qs[j]
 
         self.DQN.model.train_on_batch(x, y)
         self.target_counter += 1
@@ -129,7 +126,7 @@ if __name__ == '__main__':
         action, currentState = env.reset()
         while not finished:
             if np.random.random() > epsilon:
-                action = np.argmax(agent.getQ(currentState, step))
+                action = np.argmax(agent.getQ(currentState))
 
 
             else:
@@ -140,7 +137,7 @@ if __name__ == '__main__':
             epReward += reward
 
             agent.updateMemory((currentState, action, reward, new_state, finished))
-            agent.train(finished, 32)
+            agent.train(32)
             currentState = new_state
             step += 1
             # render()
