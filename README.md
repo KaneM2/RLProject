@@ -1,4 +1,4 @@
-# Trinity College Dublin
+
 ## Final Year Undergraduate Mathematics Project
 ### Reinforcement Learning 
 
@@ -24,4 +24,4 @@ Remove redundant code
 
 
 
-Michael Kane
+
